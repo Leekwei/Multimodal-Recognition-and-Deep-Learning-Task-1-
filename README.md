@@ -9,8 +9,7 @@ on the **IDRiD** dataset.
 | `Task_1.ipynb` | Main pipeline. Trains **EfficientNet-B3** with Bayesian HPO (Optuna), evaluates, and runs Grad-CAM error analysis. This is the primary model. |
 | `Model-comparisons-task-1.ipynb` | Benchmark notebook. Trains **ResNet-50** and **MobileNetV3-Large** under matching conditions and compares them against the EfficientNet-B3 result from `Task_1.ipynb`. |
 
-Both notebooks are written for **Kaggle** (they auto-detect `/kaggle/input` /
-`/kaggle/working`), with `Task_1.ipynb` also able to fall back to a local
+Both notebooks are written for **Kaggle**, with `Task_1.ipynb` also able to fall back to a local
 `./data/idrid` folder.
 
 ## 1. Environment
@@ -24,11 +23,9 @@ pip install torch torchvision numpy pandas opencv-python matplotlib scikit-learn
 
 ## 2. Dataset
 
-Download the **IDRiD "Disease Grading"** subset (fundus images + severity
-labels). Each notebook auto-discovers the dataset by scanning for
+Download the **IDRiD "Disease Grading"** subset. Each notebook auto-discovers the dataset by scanning for
 folders/files containing keywords like `disease`+`grading`, `train`/`test`
-image folders, and `train`/`test` label CSVs (matched by filename, so exact
-paths don't matter as long as the structure is intact).
+image folders, and `train`/`test` label CSVs
 
 - **On Kaggle:** attach the IDRiD Disease Grading dataset to the notebook as
   an input dataset. `Task_1.ipynb` looks under `/kaggle/input`;
@@ -39,7 +36,7 @@ paths don't matter as long as the structure is intact).
   don't matter). `Model-comparisons-task-1.ipynb` would need `/kaggle/input`
   to exist locally (e.g. symlinked) to run outside Kaggle.
 
-Each label CSV needs an image-name column and a "retinopathy grade" column
+Each label CSV needs an image name column and a "retinopathy grade" column
 (auto-matched by keyword); everything else is derived from that.
 
 ## 3. Run order
@@ -56,10 +53,9 @@ The two notebooks are **coupled through a checkpoint**, not independent:
    glob.glob("/kaggle/input/**/best_model.pt", recursive=True)
    ```
    i.e. it reads from `/kaggle/input`, not `/kaggle/working`. On Kaggle, do
-   this by saving `Task_1.ipynb`'s output as a dataset (or "Add utility
-   script/output") and attaching that dataset as input to the comparison
+   this by saving `Task_1.ipynb`'s output as a dataset and attaching that dataset as input to the comparison
    notebook. Locally, just place `best_model.pt` somewhere under a directory
-   you point the glob at.
+   you point the "glob" at.
 3. **Run `Model-comparisons-task-1.ipynb` top to bottom.**
    - Trains ResNet-50 and MobileNetV3-Large from scratch (same two-phase
      schedule, 224×224 input vs. EfficientNet-B3's 300×300).
@@ -85,11 +81,3 @@ The two notebooks are **coupled through a checkpoint**, not independent:
 - `comparison_metrics.json` — val/test QWK, F1, AUC for all three architectures
 - `confusion_<model>_<split>.png` — confusion matrices for EfficientNet-B3, ResNet-50, MobileNetV3-Large
 - `/kaggle/working/checkpoints/best_resnet50.pt`, `best_mobilenetv3.pt`
-
-## 5. Key config (for reference)
-
-- Seed: 42 throughout, for reproducibility.
-- Preprocessing (Task_1 only): black-border removal → resize → black-corner inpainting (fixes a Grad-CAM-discovered artifact) → CLAHE → Ben Graham preprocessing.
-- Loss: focal loss with class weights (both notebooks).
-- Schedule: Phase 1 (frozen backbone, head only) → Phase 2 (unfreeze last block/stage + head), AdamW, `ReduceLROnPlateau`, early stopping (patience 5).
-- HPO (Task_1 only): Optuna TPE over phase LRs, dropout, weight decay, and unfreeze stage; 7 trials at reduced epoch budget, then a full final run with the best params.
