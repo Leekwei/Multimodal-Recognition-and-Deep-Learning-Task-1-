@@ -66,18 +66,3 @@ The two notebooks are **coupled through a checkpoint**, not independent:
      retrain EfficientNet-B3, update these values manually to match, or rely
      on the later cell that re-evaluates the loaded `effnet` checkpoint directly.
    - Saves `comparison_metrics.json` and confusion matrix plots to `/kaggle/working/results/`.
-
-## 4. What each notebook produces
-
-**`Task_1.ipynb`** → `/kaggle/working/results/`
-- `effnet_metrics.json` — val/test QWK, macro-F1, AUC
-- `cm_effnet_validation.png`, `cm_effnet_test.png` — confusion matrices
-- `scatter_effnet_test.png` — predicted vs. true grade scatter
-- `error_distances_test.png` — |true − predicted| histogram
-- `gradcam/` — Grad-CAM overlays per grade, plus targeted misclassification examples (Grade 1 misses, Grade 3→0 misses)
-- `checkpoints/best_model_FINAL.pt` — copy of the best checkpoint
-
-**`Model-comparisons-task-1.ipynb`** → `/kaggle/working/results/`
-- `comparison_metrics.json` — val/test QWK, F1, AUC for all three architectures
-- `confusion_<model>_<split>.png` — confusion matrices for EfficientNet-B3, ResNet-50, MobileNetV3-Large
-- `/kaggle/working/checkpoints/best_resnet50.pt`, `best_mobilenetv3.pt`
